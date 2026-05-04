@@ -1,0 +1,314 @@
+import customtkinter as ctk
+import random
+from PIL import Image
+import os
+import json
+
+# Global UI Settings
+ctk.set_appearance_mode("Dark")
+ctk.set_default_color_theme("blue")
+
+class SleepifyPro(ctk.CTk):
+    def __init__(self):
+        super().__init__()
+
+        # --- WINDOW CONFIG ---
+        self.title("Sleepify: Star Recovery Engine")
+        self.geometry("1200x900")
+        
+        self.script_dir = os.path.dirname(__file__)
+        self.db_file = os.path.join(self.script_dir, "userdata.json")
+
+        # --- STATE MANAGEMENT ---
+        self.current_user = ""
+        self.total_debt = 0.0
+        self.current_star = "Rajini"
+        
+        # --- DATABASE: 50 SLEEP QUOTES ---
+        self.sleep_quotes = [
+            "Your sleep is the golden chain that ties health and our bodies together.",
+            "Sleep is the best meditation.", "A well-spent day brings happy sleep.",
+            "The bridge between despair and hope is a good night's sleep.",
+            "Man should forget his anger before he lies down to sleep.",
+            "Sleep is the restorer of energy and the healer of the mind.",
+            "Sleep is the power nap of the soul.",
+            "Tired minds don't plan well. Sleep first, plan later.",
+            "The soul that sleeps is the soul that heals.",
+            "Sleep is an investment in the energy you need to be effective tomorrow.",
+            "A good laugh and a long sleep are the best cures in the doctor's book.",
+            "Your future depends on your dreams, so go to sleep.",
+            "The minute you fail to sleep, you fail to win.",
+            "To sleep is to dream, to dream is to live.",
+            "Rest is not idleness; it is recovery.",
+            "Without enough sleep, we all become tall two-year-olds.",
+            "A night of rest is a day of power.",
+            "Don't fight the sleep. It is the only war you win by surrendering.",
+            "Your body is a temple, but it needs a closing time.",
+            "Success starts in the bed—with a good night's rest.",
+            "Sleep: the most beautiful experience in life.",
+            "End the day with gratitude and a heavy blanket.",
+            "Sleep more, stress less.",
+            "Your brain is a supercomputer. It needs to reboot every night.",
+            "Quality sleep is the foundation of a quality life.",
+            "The best way to solve a problem is to sleep on it.",
+            "Sleep is the only time you are truly free.",
+            "One hour of sleep before midnight is worth two after.",
+            "Rest is the secret ingredient of greatness.",
+            "Deep sleep is the secret to deep thinking.",
+            "Sleep is the foundation of the 'Magizhchi' lifestyle!",
+            "Inga santhosam na enga ponalum santhosam tha!",
+            "Proper rest is the secret of verithanam energy.",
+            "Don't cheat your sleep, your body will know.",
+            "A rested mind is a creative mind.",
+            "Your heart rate slows, but your soul wakes up.",
+            "A pillow is the best place to park your troubles.",
+            "Sleep is the original life-hack.",
+            "Burnout is real. Sleep is the only extinguisher.",
+            "The world can wait. Your health cannot.",
+            "Silence is the sleep that nourishes wisdom.",
+            "Dreams are the touchstones of our characters.",
+            "Sleep is the brother of death... but the father of health.",
+            "The night is for healing. Let it do its job.",
+            "Charge your phone outside, charge your body inside.",
+            "Don't let the sun go down on your fatigue.",
+            "8 hours of sleep is 100% of a better you.",
+            "Sleep is the ultimate recovery gear.",
+            "Turn off the blue light, turn on the moonlight.",
+            "Sleep well, dream big, wake up strong."
+        ]
+# --- THE MEGA 500-SONG DATABASE (100 per Director) ---
+        self.song_db = {
+            "Ilayaraja": [
+                "Ilaya Nila", "Kanne Kalaimane", "Mandram Vandha", "Nilaave Vaa", "En Iniya Pon Nilave", "Ooru Sanam", "Thendral Vandhu", "Pani Vizhum Malarvanam", "Aayiram Thamarai", "Sundari Kannal", 
+                "Valai Osai", "Shenbagame", "Idhu Oru Pon Maalai", "Rakkamma Kaiya Thattu", "Thamizha Thamizha", "Punnagai Mannan Theme", "Priya Priya", "Naan Reathi", "Germaniyin Senthamizh", "Raja Raja Chozhan",
+                "Poongatru Thirumbuma", "Vellai Pura Ondru", "Yamunai Aatrile", "Janani Janani", "Sangeetha Megam", "Poove Sempoove", "Kannan Vanthu", "Oh Butterfly", "Pudhu Cheri Katcheri", "Madai Thiranthu",
+                "Mounamana Neram", "En Kanmani", "Vaan Nila Nila", "Andhi Mazhai Pozhigirathu", "Chinna Thayaval", "Amma Endru", "Nooru Varusham", "Pichai Pathiram", "Kumbakonam", "Anantha Kuyilin",
+                "Malaikkovil Vaasalil", "Edhedho Ennam", "Thooliyile", "Uchi Vaguntheduthu", "Unna Nenachen", "Valli Valli", "Nila Kaigirathu (IR)", "Poovoma Oorgolam", "Meenkodi Theril", "Unnai Naan",
+                "Aasaiya Kaathula", "Thendral Kaatru", "Kadhalin Deepam", "Paadi Azhaithen", "Vizhiyile Mani", "Pottu Vaitha", "Sorgame Endralum", "Nila Kayuthu", "O Butterfly", "Kadhal Kasakkuthaiya",
+                "Malare Pesu", "Oru Iniya Manathu", "Raasathi Unna", "Senthura Poove", "Kalyana Malai", "Poonthalir Ada", "Poovae Pon Poovae", "Raja Kaiya Vacha", "Muthu Muthu", "Mancholai Kiliye",
+                "Nethu Rathiri", "Singari Sarakku", "Maanguyile", "Inji Iduppazhagi", "Sivaji Ganesan Tribute", "Naanaga Naanillai", "Oru Jeevan", "Enna Satham", "Puthu Maapilaiku", "Oru Poongaavanam",
+                "Kalaivaniye", "Anjali Anjali", "Kalyana Thenila", "Raman Aandaalum", "Vandhaal Mahalakshmi", "Kodai Kaala", "Malli Malli", "Om Namah Shivaya", "Kandupidi Kandupidi", "Ullasa Ulagam",
+                "Unnaivida", "Nilave Mugam Kaattu", "Vaanengum Thanga", "Kuyil Paattu", "Maane Maane", "Rasathi Unna", "Chinna Chinna Vanna", "Kaatril Enthan", "Idhayam Oru Kovil", "Thanni Thotti"
+            ],
+            "ARR": [
+                "Chinna Chinna Aasai", "Kadhal Rojave", "Pudhu Vellai Mazhai", "Uyire Uyire", "Kannalane", "Ennavale Adi Ennavale", "Urvasi Urvasi", "Anjali Anjali", "En Kadhale", "Mustafa Mustafa", 
+                "Margazhi Poove", "Ottagathai Kattiko", "Mukkabla", "Humma Humma", "Vennilave Vennilave", "Nila Kaigirathu", "Columbus", "Snehithane", "Evano Oruvan", "Pachai Nirame",
+                "Alaipayuthey", "Endrendrum Punnagai", "Mangalyam", "September Madham", "Kadhal Sadugudu", "Minsara Poove", "Omana Penne", "Hosanna", "Vinnaithaandi Varuvaaya", "Anbil Avan",
+                "New York Nagaram", "Munbe Vaa", "Jillunu Oru Kaadhal", "Kumari", "Vaji Vaji", "Sahana", "Balleilakka", "Athiradee", "Vaaji Vaaji", "Irumbile Oru Idhayam",
+                "Boom Boom", "Kilimanjaro", "Ennamo Aedho (ARR)", "Aila Aila", "Ladio", "Mersalayitten", "Pookkalae Sattru", "Aathangara Marame", "Chikku Bukku Rayile", "Usilampatti Pennkutti",
+                "Petta Rap", "Take It Easy Urvasi", "Telephone Manipol", "Vaadi Nilamani", "Kannodu Kaanbadhellam", "Konjum Mainakkale", "Mona Lisa", "Oru Deivam Thanda", "Vidai Kodu Engal", "Vellai Pookal",
+                "Azhagiya Cindrella", "Oruvan Oruvan", "Konjam Nilavu", "Strawberry Kannae", "Poovukkul", "Varaha Nadhikarai", "Thillana Thillana", "Netru Illatha Maatram", "En Mel Vizhunda", "Kandukondain Kandukondain",
+                "Smayiyai", "Enna Solla Pogirai", "Yenge Enathu Kavithai", "Sandhana Thenralai", "Theenda Theenda", "Shakalaka Baby", "Love Check", "Secret of Success", "Smile Please", "Azhagiye",
+                "Vaan Varuvaan", "Sarattu Vandiyila", "Nallai Allai", "Arziyan", "Kun Faya Kun", "Rehna Tu", "Dil Se Re", "Chaiyya Chaiyya", "Jiya Jale", "Satrangi Re",
+                "Mental Manadhil", "Parandhu Sella", "Malargal Kaettaen", "Naane Varugiraen", "Aye Sinamika", "O Humdum Suniyo", "Fanaa", "Lukka Chuppi", "Roobaroo", "Jai Ho"
+            ],
+            "Anirudh": [
+                "Kannazhaga", "Po Nee Po", "Idhazhin Oram", "Nee Paartha Vizhigal", "Un Vizhigalil", "Oh Penne", "Yaar Indha Saalai Oram", "Neeyum Naanum", "Kannamma", "Kadhaippoma",
+                "Vathi Coming", "Kutty Story", "Arabic Kuthu", "Hukum", "Badass", "Naa Ready", "Megham Karukatha", "Ranjithame", "Private Party", "Soul of Varisu",
+                "Why This Kolaveri Di", "Come on Girls", "Velaiilla Pattadhari", "Udhungada Sangu", "What a Karavaad", "Amma Amma", "Po Indru Neeyaga", "Aathi", "Selfie Pulla", "Paalam",
+                "Danga Maari", "Thangame", "Enthaaraa Enthaaraa", "Bitu Padam Di", "Sirikkadhey", "Senjitaley", "Remo Nee Kadhalan", "Tamilselvi", "Don'u Don'u Don'u", "Lucka Maattikkichi",
+                "Aluma Doluma", "Theruvorom", "Iraiva", "Karuthavanlaam Galeejam", "Sodakku", "Marana Mass", "Petta Paraak", "Ilamai Thirumbudhe", "Ullaallaa", "Chumma Kizhi",
+                "Vaathi Raid", "Andha Kanna Paathaakaa", "Quit Pannuda", "Polakattum Para Para", "Master Coming", "Pathala Pathala", "Vikram Title Track", "Wasted", "Porkanda Singam", "Nayagan Meendum",
+                "Once Upon a Time", "Beast Mode", "Jolly O Gymkhana", "Dippam Dappam", "Two Two Two", "Mother Song", "Bae", "Jimikki Ponnu", "Thee Thalapathy", "Celebration of Varisu",
+                "Leo Das Entry", "Ordinary Person", "Bloody Sweet", "Ratata", "Fear Song", "Manasilaayo", "Hunter Vantaar", "Devara Chuttamalle", "Daavudi", "Red Sea",
+                "Avalukena", "Onnume Aagala", "Chanceyilla", "Bewajah", "Julie", "Single Pasanga", "Agalaathey", "Chellamma", "So Baby", "Summa Surrunu",
+                "Jalabulajangu", "Private Party", "Keechayil", "Ondra Renda", "Life of Ram (Anirudh Remix)", "Vaadi Pulla Vaadi", "Ushrukkul Unna", "Thaai Kelavi", "Kanne Kalaimane (Cover)", "Tension"
+            ],
+            "Harris": [
+                "Vaseegara", "Ivan Yaaro", "Nenjukkul Peidhidum", "Mundhinam Parthene", "Annul Maelae", "Ava Enna", "Uyirin Uyire", "Ondra Renda", "Oru Maalai", "Suttum Vizhi",
+                "Adada Mazhaida", "Hasili Fisili", "Enamo Aedho", "Randakka", "Pala Pala", "Vizhi Moodi", "Yethi Yethi", "Theeyae Theeyae", "Karka Karka", "Manjal Veyil",
+                "Unakkul Naane", "Poove Vai Pesum", "Mudhal Naal", "Lesa Lesa", "Ethetho", "Azhagiya Cindrella", "Poi Solla", "Orey Oru", "June Ponal", "Kala Kala",
+                "Moongil Kadugale", "Pookkal Pookkum", "Vinnai Kaapan", "Anal Maele", "Athellaam", "Oh Ringa Ringa", "Dhimu Dhimu", "En Fuse", "Google Google", "Vennilave (Harris)",
+                "Vaadi Vaadi", "Laka Laka", "Kannum Kannum", "Kumari", "Iyengaaru Veetu", "Andangkaka", "Kadhalikkum Pennin", "Theeye Theeye", "Anbe En Anbe", "Karu Karu",
+                "Thoodhu Varuma", "Yendi Yendi", "Danga Maari (Harris)", "Aathadi Aathadi", "Nani Koni", "Mazhai Mazhai", "Thodu Vaanam", "Irava Pagala", "Kadhal Konjam", "Unakkenna Venum",
+                "Maya Bazaar", "Vinaa", "Agale Agale", "Halena", "Kannai Vittu", "Damakku Damakku", "Oru Mugamo", "Thalattu Naal", "Pani Thuli", "Kodu Poatta",
+                "Usure Pogudhey", "Venmani Venmani", "Anjalay", "Oru Punnagai Poove", "Unakenna Thaane", "Sahaana", "Azhagiya Theeye", "Vellai Pookal (Harris)", "Pookkalae", "Mullai Poo",
+                "Ennai Konjam", "Ayyayo", "Paartha Mudhal", "Karu Karu Vizhigal", "Thousand Watt", "Amali Thumali", "Oru Kili", "Kalyanam", "Sillaan", "Yaaro",
+                "Vada Vada", "Nee Paartha", "Unakkenna", "Kadhal Yanai", "X Machi", "Stranger in Plain", "Oh Sukumari", "Ding Dong", "Honey Honey", "Aasai Aasai"
+            ],
+            "Yuvan": [
+                "Mun Paniya", "Kan Pesum Vaarthaigal", "Ninaithu Ninaithu Parthen", "Idhu Varai", "Oru Kal Oru Kannadi", "Yedho Ondru Ennai", "Thuli Thuli", "En Kadhal Solla", "Adada Mazhaida", "Loosu Penne",
+                "Kadavul Thanda", "Kadhal Valarthen", "Siragugal", "Aariro", "Dheivangal", "Oru Naalil", "Saroja Saman Nikalo", "Vaanam", "Evandi Unna Pethan", "High On Love",
+                "Rowdy Baby", "Maari Thara Local", "Pakkam Vanthu", "Donu Donu", "Aaluma Doluma (Yuvan Mix)", "Vilambara Idaiveli", "Kandaangi", "Manmadhane", "Ennamo Edho", "Kadhal Pisase",
+                "Something Something", "Theepidikka", "Saiya Ya Ya", "Chudithar Aninthu", "Oru Devathai", "Iravu Pagal", "Oh Shanthi", "Kaanal Neer", "Vaikasi Nilave", "Unakkullae",
+                "Dheivangal Ellam", "Ananda Yazhai", "Vaanam", "No Money No Honey", "Who Am I", "Life of Ram", "Kanni Penne", "Punnagai Poo", "Dating", "Jigidi Killadi",
+                "Vaadi Pulla Vaadi", "Azhagae", "Nee", "Unnaipola", "Arziyan (Yuvan)", "Sandaali", "Potta Pulla", "Engeyum Eppothum", "Vellaikara", "Kadhal Vaithu",
+                "Aiyyayo", "Para Para", "Vathikuchi", "Baby", "Sullan", "Thathai Thathai", "Yammadi Aathadi", "Chellame", "Kadhal Vandhal", "Pogathe Pogathe",
+                "Oru Paarvaiyil", "Manasu", "Yaar", "Thoovanam", "Kaatru", "Uyire", "Enge", "Nee", "Oru Paarvai", "Thithikuthu",
+                "Kadhal Mattum", "Sonna Puriyathu", "Vaanam Paartha", "Adada Adada", "Punnagai", "Engeyo Paartha", "Pesugiren", "Neethane", "Engae", "Yedho",
+                "Mazhai", "Poovum", "Nenjai", "Unakkaga", "Puthu", "Kavithai", "Unnaivida", "Nilave", "Thendral", "Vaanam"
+            ]
+        }
+        self.load_images()
+
+        # --- MAIN UI LAYOUT ---
+        self.grid_columnconfigure(1, weight=1)
+        self.grid_rowconfigure(0, weight=1)
+
+        # 1. SIDEBAR
+        self.sidebar = ctk.CTkFrame(self, width=350, corner_radius=0)
+        self.sidebar.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
+        ctk.CTkLabel(self.sidebar, text="SLEEPIFY AI", font=("Roboto", 28, "bold"), text_color="#3b8ed0").pack(pady=20)
+        
+        self.chat_display = ctk.CTkTextbox(self.sidebar, width=300, height=380, state="disabled", corner_radius=15, font=("Arial", 13))
+        self.chat_display.pack(pady=10, padx=20)
+        
+        ctk.CTkButton(self.sidebar, text="Check Sleep Debt", command=lambda: self.quick_action(1), height=45).pack(pady=5, fill="x", padx=30)
+        ctk.CTkButton(self.sidebar, text="Health Secret", command=lambda: self.quick_action(2), height=45).pack(pady=5, fill="x", padx=30)
+        ctk.CTkButton(self.sidebar, text="Vibe with Music", command=lambda: self.quick_action(3), height=45).pack(pady=5, fill="x", padx=30)
+
+        self.star_menu = ctk.CTkOptionMenu(self.sidebar, values=["Rajini", "Vijay", "Kamal", "Ajith"], command=self.change_star)
+        self.star_menu.set("Rajini")
+        self.star_menu.pack(pady=20)
+
+        # 2. MAIN DASHBOARD
+        self.main_dash = ctk.CTkFrame(self, fg_color="transparent")
+        self.main_dash.grid(row=0, column=1, sticky="nsew", padx=40, pady=40)
+
+        self.p_card = ctk.CTkFrame(self.main_dash, height=160, corner_radius=20, border_width=1, border_color="gray")
+        self.p_card.pack(fill="x", pady=(0, 30))
+        self.face_label = ctk.CTkLabel(self.p_card, text="", image=self.star_faces.get("Rajini"))
+        self.face_label.pack(side="left", padx=25, pady=20)
+        self.greet_label = ctk.CTkLabel(self.p_card, text="Waiting for Login...", font=("Roboto", 20, "italic"), wraplength=500)
+        self.greet_label.pack(side="left", padx=10)
+
+        self.stats_row = ctk.CTkFrame(self.main_dash, fg_color="transparent")
+        self.stats_row.pack(fill="x")
+        
+        self.debt_display = self.create_stat_box(self.stats_row, "TOTAL DEBT", "#3b8ed0")
+        self.goal_display = self.create_stat_box(self.stats_row, "TARGET TONIGHT", "#2fa572")
+
+        if self.bed_img:
+            ctk.CTkLabel(self.main_dash, text="", image=self.bed_img).pack(pady=30)
+
+        self.input_frame = ctk.CTkFrame(self.main_dash, fg_color="transparent")
+        self.input_frame.pack(pady=10)
+        self.sleep_input = ctk.CTkEntry(self.input_frame, placeholder_text="Hours slept last night...", width=300, height=45)
+        self.sleep_input.grid(row=0, column=0, padx=10)
+        ctk.CTkButton(self.input_frame, text="Log Sleep", command=self.update_sleep_stats, width=160, height=45).grid(row=0, column=1)
+
+        # --- ATTRACTIVE LOGIN OVERLAY ---
+        self.login_frame = ctk.CTkFrame(self, fg_color=("#ebebeb", "#242424"))
+        self.login_frame.place(relx=0, rely=0, relwidth=1, relheight=1)
+        self.login_container = ctk.CTkFrame(self.login_frame, corner_radius=25, border_width=1, border_color="gray")
+        self.login_container.place(relx=0.5, rely=0.5, anchor="center")
+        
+        # Left Side: Hero Image and Random Quote
+        self.hero_section = ctk.CTkFrame(self.login_container, fg_color="transparent")
+        self.hero_section.grid(row=0, column=0, padx=40, pady=40)
+        if self.login_hero_img:
+            ctk.CTkLabel(self.hero_section, text="", image=self.login_hero_img).pack()
+        
+        self.current_quote = random.choice(self.sleep_quotes)
+        self.quote_label = ctk.CTkLabel(self.hero_section, text=f'"{self.current_quote}"', font=("Roboto", 16, "italic"), wraplength=350, text_color="gray")
+        self.quote_label.pack(pady=20)
+
+        # Right Side: Form
+        self.form_section = ctk.CTkFrame(self.login_container, fg_color="transparent")
+        self.form_section.grid(row=0, column=1, padx=40, pady=40)
+        ctk.CTkLabel(self.form_section, text="SLEEPIFY", font=("Roboto", 42, "bold"), text_color="#3b8ed0").pack(pady=10)
+        ctk.CTkLabel(self.form_section, text="Personalized Star Recovery", font=("Roboto", 14), text_color="gray").pack(pady=(0, 30))
+        self.username_entry = ctk.CTkEntry(self.form_section, placeholder_text="Enter your name...", width=300, height=45, corner_radius=10)
+        self.username_entry.pack(pady=10)
+        ctk.CTkButton(self.form_section, text="START ENGINE", command=self.login, width=220, height=50, corner_radius=25, font=("Roboto", 16, "bold")).pack(pady=25)
+
+    def create_stat_box(self, parent, title, color):
+        box = ctk.CTkFrame(parent, border_width=2, border_color=color, corner_radius=20)
+        box.pack(side="left", expand=True, fill="both", padx=15)
+        lbl = ctk.CTkLabel(box, text="0.0h", font=("Roboto", 65, "bold"), text_color=color)
+        lbl.pack(pady=(30, 0))
+        ctk.CTkLabel(box, text=title, font=("Roboto", 13, "bold"), text_color="gray").pack(pady=(0, 30))
+        return lbl
+
+    def load_images(self):
+        self.star_faces = {}
+        for star in ["Rajini", "Vijay", "Kamal", "Ajith"]:
+            path = os.path.join(self.script_dir, f"{star.lower()}_face.png")
+            self.star_faces[star] = ctk.CTkImage(Image.open(path), size=(120, 120)) if os.path.exists(path) else None
+        
+        hero_path = os.path.join(self.script_dir, "login_hero.png")
+        self.login_hero_img = ctk.CTkImage(Image.open(hero_path), size=(350, 450)) if os.path.exists(hero_path) else None
+        
+        bed_path = os.path.join(self.script_dir, "bed_background.png")
+        self.bed_img = ctk.CTkImage(Image.open(bed_path), size=(350, 220)) if os.path.exists(bed_path) else None
+
+    # --- USER LOGIC ---
+    def login(self):
+        name = self.username_entry.get().strip()
+        if not name: return
+        self.current_user = name
+        self.load_user_data()
+        self.login_frame.place_forget()
+        self.change_star(self.current_star)
+        # Iconic Dialogue integrated at Login
+        self.add_chat(f"RAJINI: Kanna {name}! Inga santhosam na enga ponalum santhosam tha... Inga santhosam illa na engayum illa. Start your recovery!")
+
+    def load_user_data(self):
+        if os.path.exists(self.db_file):
+            with open(self.db_file, "r") as f:
+                data = json.load(f)
+                info = data.get(self.current_user, {"debt": 0.0})
+                self.total_debt = info["debt"]
+                self.update_ui_labels()
+
+    def save_user_data(self):
+        data = {}
+        if os.path.exists(self.db_file):
+            with open(self.db_file, "r") as f: data = json.load(f)
+        data[self.current_user] = {"debt": self.total_debt}
+        with open(self.db_file, "w") as f: json.dump(data, f)
+
+    # --- STAR ACTIONS ---
+    def quick_action(self, choice):
+        if choice == 1: # DEBT CHECK
+            lines = {
+                "Rajini": f"Kanna! Debt {self.total_debt:.1f}h. Naan oru thadava sonna nooru thadava sonna madhiri... go to sleep!",
+                "Vijay": f"Nanba! Debt {self.total_debt:.1f}h. Life is short, stay happy and rest well.",
+                "Kamal": f"Physiological deficit is {self.total_debt:.1f}h. Circadian synchronization required.",
+                "Ajith": f"Debt: {self.total_debt:.1f}h. Discipline is the only way. Stay focused."
+            }
+            self.add_chat(lines[self.current_star])
+        elif choice == 2: # RANDOM QUOTE / HEALTH SECRET
+            self.add_chat(f"{self.current_star}: {random.choice(self.sleep_quotes)}")
+        elif choice == 3: # MUSIC
+            d = random.choice(list(self.song_db.keys()))
+            songs = random.sample(self.song_db[d], 3)
+            self.add_chat(f"{self.current_star}: Relax with {d} hits:\n\n✨ {songs[0]}\n✨ {songs[1]}\n✨ {songs[2]}")
+
+    def change_star(self, name):
+        self.current_star = name
+        self.face_label.configure(image=self.star_faces.get(name))
+        quotes = {
+            "Rajini": f"Kanna {self.current_user}! Magizhchi! Let's clear that debt.",
+            "Vijay": f"Nanba! I'm waiting for your recovery streak!",
+            "Kamal": f"Greetings {self.current_user}. Analyzing biological data...",
+            "Ajith": f"Hello {self.current_user}. Guts and Great Sleep. No shortcuts."
+        }
+        self.greet_label.configure(text=quotes.get(name))
+        self.add_chat(f"MODE: {name} personality activated.")
+
+    def update_sleep_stats(self):
+        try:
+            val = float(self.sleep_input.get())
+            self.total_debt += (8.0 - val)
+            if self.total_debt < 0: self.total_debt = 0
+            self.update_ui_labels()
+            self.save_user_data()
+            self.sleep_input.delete(0, 'end')
+            self.add_chat(f"{self.current_star}: Logged {val}h. Debt recalculated.")
+        except: pass
+
+    def update_ui_labels(self):
+        target = 8.0 + (self.total_debt * 0.2)
+        self.debt_display.configure(text=f"{self.total_debt:.1f}h")
+        self.goal_display.configure(text=f"{target:.1f}h")
+
+    def add_chat(self, text):
+        self.chat_display.configure(state="normal")
+        self.chat_display.insert("end", text + "\n\n")
+        self.chat_display.configure(state="disabled")
+        self.chat_display.see("end")
+
+if __name__ == "__main__":
+    app = SleepifyPro()
+    app.mainloop()
